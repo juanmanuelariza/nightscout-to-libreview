@@ -73,15 +73,15 @@ prompt.get([{
   fs.writeFileSync(CONFIG_NAME, JSON.stringify(config));
 
   (async () => {
-    const fromDate = dayjs(`${result.year}-${result.month}-01`).format('YYYY-MM-DD');
-    const toDate = dayjs(`${result.year}-${result.month + 1}-01`).format('YYYY-MM-DD');
+    const fromDate = new Date(`${result.year}-${result.month}-01`).getTime();
+    const toDate = new Date(`${result.year}-${result.month}-${new Date(result.year, result.month, 0).getDate()} 23:59`).getTime();
 
-    console.log('transfer time span', fromDate.gray, toDate.gray);
+    console.log('transfer time span', fromDate, toDate);
 
     const glucoseEntries = await nightscout.getNightscoutGlucoseEntries(config.nightscoutUrl, config.nightscoutToken, fromDate, toDate);
     const foodEntries = await nightscout.getNightscoutFoodEntries(config.nightscoutUrl, config.nightscoutToken, fromDate, toDate);
     const insulinEntries = await nightscout.getNightscoutInsulinEntries(config.nightscoutUrl, config.nightscoutToken, fromDate, toDate);
-
+    // console.log(glucoseEntries);
     if (glucoseEntries.length > 0 || foodEntries.length > 0 || insulinEntries.length > 0) {
       const auth = await libre.authLibreView(config.libreUsername, config.librePassword, config.libreDevice, result.libreResetDevice);
       if (!!!auth) {

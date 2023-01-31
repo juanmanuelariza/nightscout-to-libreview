@@ -63,7 +63,7 @@ const getNightscoutFoodEntries = async function (baseUrl, token, fromDate, toDat
 };
 
 const getNightscoutGlucoseEntries = async function (baseUrl, token, fromDate, toDate) {
-  const url = `${baseUrl}/api/v1/entries.json?find[dateString][$gte]=${fromDate}&find[dateString][$lte]=${toDate}&count=131072${getNightscoutToken(token)}`;
+  const url = `${baseUrl}/api/v1/entries.json?find[date][$gte]=${fromDate}&find[date][$lte]=${toDate}&count=131072${getNightscoutToken(token)}`;
   console.log('glucose entries url', url.gray);
 
   const response = await axios.get(url, {
@@ -71,14 +71,14 @@ const getNightscoutGlucoseEntries = async function (baseUrl, token, fromDate, to
       'Content-Type': 'application/json'
     }
   });
-
+// console.log(response.data);
   const data = response.data.filter(function (value, index, Arr) {
     return index % 3 == 0;
   }).map(d => {
     return {
-      id: parseInt(`1${dayjs(d.dateString).format('YYYYMMDDHHmmss')}`),
+      id: d.date,
       sysTime: d.sysTime,
-      dateString: d.dateString,
+      date: d.date,
       sgv: d.sgv,
       delta: d.delta,
       direction: d.direction
@@ -95,7 +95,7 @@ const getNightscoutGlucoseEntries = async function (baseUrl, token, fromDate, to
         "lowOutOfRange": e.sgv <= 40 ? "true" : "false"
       },
       "recordNumber": e.id,
-      "timestamp": e.dateString,
+      "timestamp": addHours(new Date(e.date), -3),
       "valueInMgPerDl": e.sgv
     };
   });
@@ -150,6 +150,11 @@ const getNightscoutInsulinEntries = async function (baseUrl, token, fromDate, to
     };
   });
 };
+
+function addHours(date, hours) {
+  date.setHours(date.getHours() + hours);
+  return date;
+}
 
 exports.getNightscoutFoodEntries = getNightscoutFoodEntries;
 exports.getNightscoutGlucoseEntries = getNightscoutGlucoseEntries;
